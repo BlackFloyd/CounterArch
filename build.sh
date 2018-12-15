@@ -1,5 +1,4 @@
 #! /bin/bash
-PATCHFILE=live-patch-$(date +%Y-%m-%d_%H-%M)
 cat<<LOGOEOF
   #         ####         #
  #         ######         #
