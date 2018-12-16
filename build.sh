@@ -1,4 +1,6 @@
 #! /bin/bash
+LATESTSTABLE="v4.19"
+
 cat<<LOGOEOF
   #         ####         #
  #         ######         #
@@ -12,7 +14,6 @@ cat<<LOGOEOF
 CounterArch kernel updater - driven by bad ideas.
 ====================================================
 LOGOEOF
-echo -e "\e[31mWarning: \e[39mThis will actually update your kernel to the current master branch. You should not do this."
 cd linux
 echo Checking for updates...
 if [ ! -f .config ]; then
@@ -20,11 +21,28 @@ if [ ! -f .config ]; then
     zcat /proc/config.gz > .config
     make prepare
 fi;
+set -e
+read -p "Use the master branch? (y/N)" -n 1 -r
+echo
+if [[ $REPLY =~ ^[Yy]$ ]]; then
+    echo -e "\e[31mWarning: \e[39mThis will actually update your kernel to the current master branch. You should not do this."
+    git remote update
+    echo Reseting...
+    git reset --hard $LOCAL
+    UPSTREAM=${1:-'@{u}'}
+    LOCAL=$(git rev-parse @)
+    REMOTE=$(git rev-parse "$UPSTREAM")
+    git checkout master
+    git pull
+else
+    echo Reseting...
+    git reset --hard $LOCAL
+    echo Updating to $LATESTSTABLE.
+    git checkout tags/$LATESTSTABLE
+    LOCAL=$(git describe --tags)
+    REMOTE=$LATESTSTABLE
+fi;
 
-git remote update
-UPSTREAM=${1:-'@{u}'}
-LOCAL=$(git rev-parse @)
-REMOTE=$(git rev-parse "$UPSTREAM")
 CURRENTKERNEL=$(uname -r)
 NEWKERNEL=$(make kernelrelease)
 
@@ -36,16 +54,11 @@ fi
 echo Updates found.
 read -p "Are you REALLY sure you want to do this? (y/N)" -n 1 -r
 echo
-if [[ ! $REPLY =~ ^[Yy]$ ]]
-then
+if [[ ! $REPLY =~ ^[Yy]$ ]]; then
     echo You have made the right decision.
     exit 1
 fi
 
-set -e
-echo Reseting...
-git reset --hard $LOCAL
-git pull
 echo Hacking Makefiles to enable the whole instruction set...
 sed -i -e 's/-march=core2/-march=native/g' arch/x86/Makefile
 sed -i -e 's/-march=atom/-march=native/g' arch/x86/Makefile
@@ -67,7 +80,7 @@ read -p "Press enter to install new kernel"
 sudo cp -v arch/x86_64/boot/bzImage /boot/vmlinuz-linux-counterarch
 
 if [ ! -f /etc/mkinitcpio.d/linux-counterarch.preset ]; then
-    sudo cp -v ../linux-counterarch.preset /etc/mkinitcpio.d/	
+    sudo cp -v ../linux-counterarch.preset /etc/mkinitcpio.d/
 fi
 
 sudo mkinitcpio -p linux-counterarch
