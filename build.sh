@@ -14,8 +14,11 @@ cat<<LOGOEOF
 CounterArch kernel updater - driven by bad ideas.
 ====================================================
 LOGOEOF
+echo Performing pacman updates...
+sudo pacman -Sy
+sudo pacman -S base-devel --noconfirm --needed
+
 cd linux
-echo Checking for updates...
 if [ ! -f .config ]; then
     echo Performing first time setup...
     zcat /proc/config.gz > .config
@@ -43,6 +46,7 @@ else
     REMOTE=$LATESTSTABLE
 fi;
 
+echo Checking for updates...
 CURRENTKERNEL=$(uname -r)
 NEWKERNEL=$(make kernelrelease)
 
