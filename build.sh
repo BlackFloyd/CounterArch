@@ -29,10 +29,10 @@ if [[ $REPLY =~ ^[Yy]$ ]]; then
     git remote update
     echo Reseting...
     git reset --hard $LOCAL
+    git checkout master
     UPSTREAM=${1:-'@{u}'}
     LOCAL=$(git rev-parse @)
     REMOTE=$(git rev-parse "$UPSTREAM")
-    git checkout master
     git pull
 else
     echo Reseting...
@@ -58,6 +58,18 @@ if [[ ! $REPLY =~ ^[Yy]$ ]]; then
     echo You have made the right decision.
     exit 1
 fi
+
+read -p "Apply ClearLinux? (y/N)" -n 1 -r
+echo
+if [[ $REPLY =~ ^[Yy]$ ]]; then
+    git -C ../patchsets/ClearLinux pull
+    set +e
+    for i in ../patchsets/ClearLinux/*.patch; do
+        echo Applying $i
+        patch -f -p1 < $i
+    done
+    set -e
+fi;
 
 echo Hacking Makefiles to enable the whole instruction set...
 sed -i -e 's/-march=core2/-march=native/g' arch/x86/Makefile
