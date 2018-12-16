@@ -1,3 +1,7 @@
+# What is this?!
+Good question. This is just a tool for quickly breaking your system. Well actually this tool allows you to quickly build a linux kernel using the master branch. Stable branch builds and patching is currently in progress - you can check out the development- and feature branches if you really like suffering.
+This is definitely not suitable for any production use. It's purely a tool to make playing with the kernel more comfortable.
+
 # Preparations
 Basically all you need (other than git) are basic build tools. These are contained in base-devel.
 Additionally installing ccache will speed compilation up by a lot. (Well - the first one will be pretty slow, but every further one will be pretty fast.)
