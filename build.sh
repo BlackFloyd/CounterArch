@@ -66,6 +66,7 @@ fi
 read -p "Apply ClearLinux? (y/N)" -n 1 -r
 echo
 if [[ $REPLY =~ ^[Yy]$ ]]; then
+    git -C ../patchsets/ClearLinux checkout master
     git -C ../patchsets/ClearLinux pull
     set +e
     for i in ../patchsets/ClearLinux/*.patch; do
