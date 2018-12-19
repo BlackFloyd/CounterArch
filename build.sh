@@ -101,6 +101,9 @@ if [ ! -f /etc/mkinitcpio.d/linux-counterarch.preset ]; then
 fi
 
 sudo mkinitcpio -p linux-counterarch
-read -p "Press enter to reinstall kernel modules"
-sudo dkms autoinstall -k $(make kernelrelease)
+read -p "Reinstall previous kernel modules? (y/N)" -n 1 -r
+echo
+if [[ $REPLY =~ ^[Yy]$ ]]; then
+    sudo dkms autoinstall -k $(make kernelrelease)
+fi
 echo Done.
