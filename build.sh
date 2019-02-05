@@ -1,5 +1,6 @@
 #! /bin/bash
 LATESTSTABLE="v4.19"
+ROOT=$(pwd)
 
 cat<<LOGOEOF
   #         ####         #
@@ -14,9 +15,11 @@ cat<<LOGOEOF
 CounterArch kernel updater - driven by bad ideas.
 ====================================================
 LOGOEOF
+echo Building from $ROOT
 echo Performing pacman updates...
 sudo pacman -Sy
 sudo pacman -S base-devel --noconfirm --needed
+sudo pacman -S wget --noconfirm --needed
 
 cd linux
 if [ ! -f .config ]; then
@@ -27,12 +30,14 @@ fi;
 set -e
 read -p "Use the master branch? (y/N)" -n 1 -r
 echo
+rm -rf net/wireguard ||:
 if [[ $REPLY =~ ^[Yy]$ ]]; then
     echo -e "\e[31mWarning: \e[39mThis will actually update your kernel to the current master branch. You should not do this."
     git remote update
     echo Reseting...
     git reset --hard $LOCAL
     git checkout master
+    git reset --hard origin/master
     UPSTREAM=${1:-'@{u}'}
     LOCAL=$(git rev-parse @)
     REMOTE=$(git rev-parse "$UPSTREAM")
@@ -46,6 +51,7 @@ else
     REMOTE=$LATESTSTABLE
 fi;
 
+git clean -f
 echo Checking for updates...
 CURRENTKERNEL=$(uname -r)
 NEWKERNEL=$(make kernelrelease)
@@ -74,7 +80,15 @@ if [[ $REPLY =~ ^[Yy]$ ]]; then
         patch -f -p1 < $i
     done
     set -e
-fi;
+else
+    read -p "Add WireGuard support? (y/N)" -n 1 -r
+    echo
+    if [[ $REPLY =~ ^[Yy]$ ]]; then
+        git -C ../patchsets/WireGuard checkout master
+        git -C ../patchsets/WireGuard pull
+	"$ROOT/patchsets/WireGuard/contrib/kernel-tree/create-patch.sh" | patch -p1
+    fi
+fi
 
 echo Hacking Makefiles to enable the whole instruction set...
 sed -i -e 's/-march=core2/-march=native/g' arch/x86/Makefile
