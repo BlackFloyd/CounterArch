@@ -1,5 +1,5 @@
 #! /bin/bash
-LATESTSTABLE="v4.19"
+LATESTSTABLE="v5.0"
 ROOT=$(pwd)
 
 cat<<LOGOEOF
