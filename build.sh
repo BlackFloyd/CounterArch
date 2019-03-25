@@ -123,7 +123,7 @@ if [[ $REPLY =~ ^[Yy]$ ]]; then
     sudo dkms autoinstall -k $(make kernelrelease)
 fi
 
-if [FIRST -eq true]; then
+if $FIRST -eq true; then
     read -p "Perform grub-mkconfig? (y/N)" -n 1 -r
     if [[ $REPLY =~ ^[Yy]$ ]]; then
         if [ ! -f /boot/grub/grub.cfg ]; then
