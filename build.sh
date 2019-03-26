@@ -1,6 +1,7 @@
 #! /bin/bash
 LATESTSTABLE="v5.0"
 ROOT=$(pwd)
+FIRST=false
 
 cat<<LOGOEOF
   #         ####         #
@@ -23,6 +24,7 @@ sudo pacman -S wget --noconfirm --needed
 
 cd linux
 if [ ! -f .config ]; then
+    FIRST=true
     echo Performing first time setup...
     zcat /proc/config.gz > .config
     make prepare
@@ -120,4 +122,30 @@ echo
 if [[ $REPLY =~ ^[Yy]$ ]]; then
     sudo dkms autoinstall -k $(make kernelrelease)
 fi
+
+if $FIRST -eq true; then
+    read -p "Perform grub-mkconfig? (y/N)" -n 1 -r
+    echo
+    if [[ $REPLY =~ ^[Yy]$ ]]; then
+        if [ ! -f /boot/grub/grub.cfg ]; then
+            echo -e "\e[31mError: \e[39mI could not find your previous grub config under /boot/grub/grub.cfg. As this is the only compatible grub.cfg path I won't do anything. Please configure grub manually."
+        else
+            echo "Running grub-mkconfig..."
+            sudo grub-mkconfig -o /tmp/counterarch-grub.cfg
+            sudo chown $(whoami) /tmp/counterarch-grub.cfg
+            read -p "Please press return and have a look at your new grub.cfg."
+            echo
+            ${EDITOR:-vi} /tmp/counterarch-grub.cfg
+            read -p "Apply new config? (y/N)" -n 1 -r
+            echo
+            if [[ $REPLY =~ ^[yY]$ ]]; then
+                echo "Backing up old config to /boot/grub/grub.cfg.old"
+                sudo cp /boot/grub/grub.cfg /boot/grub/grub.cfg.old
+                echo "Applying new config... Ignore errors about preserving the ownership - this is actually intended..."
+                sudo mv /tmp/counterarch-grub.cfg /boot/grub/grub.cfg
+            fi
+        fi
+    fi
+fi
+
 echo Done.
