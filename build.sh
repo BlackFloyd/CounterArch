@@ -20,7 +20,7 @@ echo Building from $ROOT
 echo Performing pacman updates...
 sudo pacman -Sy
 sudo pacman -S base-devel --noconfirm --needed
-sudo pacman -S wget --noconfirm --needed
+sudo pacman -S git --noconfirm --needed
 
 cd linux
 if [ ! -f .config ]; then
